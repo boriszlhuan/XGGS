@@ -66,8 +66,8 @@ ZD AND WRS AND QWRS AND CJL AND FCKB;
 
 
 援军
-{  10日内至少连续有2次涨停  }
-AA:=C/REF(C,1)>1.07 AND C>MA(C,30) AND MA(C,30) >=REF(MA(C,30) ,1) ;
+{  股价在30日均线上且30日线均线走平向上 }
+AA:=C>MA(C,30) AND MA(C,30) >=REF(MA(C,30) ,1) ;
 {  5日内至少连续有2次跌停  }
 BB:=COUNT((C-REF(C,1))*100/REF(C,1)<=-9.2,5)>1;
 {  连续3天不断创新低  }
