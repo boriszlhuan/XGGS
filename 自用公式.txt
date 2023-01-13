@@ -7,7 +7,7 @@
 
 打板：
 { 涨停板 股价在30日均线上且30日线均线走平向上}
-ZT:=C/REF(C,1)>1.07 AND C>MA(C,30) AND MA(C,30) >=REF(MA(C,30) ,1) ;
+ZT:=C/REF(C,1)>1.07 AND C>MA(C,30) AND MA(C,30) >REF(MA(C,30) ,1) ;
 { 量比>3  }
 CJL:=DYNAINFO(17)>3 AND DYNAINFO(17)<7;
 { 过滤 科创板和 创业板  ST  *ST }
@@ -37,77 +37,39 @@ A1:=CROSS(VEEEA11,VEEEA300) AND VEEEA300<2.1 AND C>O;
 EE:= C>MA(C,10) AND MA(C,10) >=REF(MA(C,10) ,1);
 游资入场:A1 AND EE AND C/MA(C,30)>1 AND  C/MA(C,30)<1.5;
 
-
-打板：
-{ 涨停板 }
-ZT:=C/REF(C,1)>1.07;
-{ 连续1天缩量 }
-CJL:=C>MA(C,20)  AND C>MA(C,30) AND MA(C,30) >=REF(MA(C,30) ,1);
-{ 在五日均线上 }
-WRS:=C>MAX(MA(C,5),MAX(MA(C,10),MAX(MA(C,20),MAX(MA(C,60),MA(C,120)))));
-{ 过滤 科创板和 创业板  st  *st }
-FCKB:=NOT(CODELIKE('688')||NAMELIKE('ST') ||NAMELIKE('*ST'));
-ZT AND CJL AND WRS  AND FCKB;
-
+ 
 
 反包
-{ 涨停板 }
-ZD:=C/REF(C,1)>1.07;
-{ 在五日均线上 }
-WRS:=C>MAX(MA(C,5),MAX(MA(C,10),MAX(MA(C,14),MA(C,20))));
-{ 穿越五日均线上 }
-QWRS:=CROSS(REF(CLOSE,1),MA(REF(CLOSE,1),5));
-{ 连续1天放量 }
-CJL:=COUNT(VOL>REF(VOL,1),2)=2;
-{ 过滤 科创板和 创业板  st  *st }
+{ 涨停板 
+N:=8;M:=3;
+EXIST(EVERY(C/REF(C,1)>1.095 AND C=H,M),N-M+1);
+10天内2次涨停 }
+ZD:=EXIST(EVERY(C/REF(C,1)>1.095 AND C=H,2),9) AND C/REF(C,1)>1.03;
+{ 股价在10日均线上 }
+WRS:=C>MA(C,30) AND MA(C,30) >=REF(MA(C,30) ,1);
+{ 量比>3 连续1天放量  }
+CJL:=DYNAINFO(17)>3 AND DYNAINFO(17)<7 AND COUNT(VOL>REF(VOL,1),2)=2;
+{ 过滤 科创板和 创业板  ST  *ST }
 FCKB:=NOT(CODELIKE('688')||NAMELIKE('ST') ||NAMELIKE('*ST'));
-ZD AND WRS AND QWRS AND CJL AND FCKB;
+ZD AND WRS  AND CJL AND FCKB;
+
+
 
 
 
 援军
 {  股价在30日均线上且30日线均线走平向上 }
 AA:=C>MA(C,30) AND MA(C,30) >=REF(MA(C,30) ,1) ;
-{  5日内至少连续有2次跌停  }
-BB:=COUNT((C-REF(C,1))*100/REF(C,1)<=-9.2,5)>1;
+{  10 日内至少连续有2次跌停  }
+BB:=COUNT((C-REF(C,1))*100/REF(C,1)<=-9.2,10)>1;
 {  连续3天不断创新低  }
 CC:=BARSLASTCOUNT(CCI<REF(CCI,1))>=3;
 {K线十字星回踩30日线}
-DD:=ABS(C-O)/(H-L)<=0.3 AND L<MA(C,30) AND C>MA(C,30)
-{ 过滤 科创板和 创业板  st  *st }
+DD:=ABS(C-O)/(H-L)<=0.3 AND L<MA(C,30) AND C>MA(C,30);
+{ 过滤 科创板和 创业板  ST  *ST }
 FCKB:=NOT(CODELIKE('688')||NAMELIKE('ST') ||NAMELIKE('*ST'));
-AA AND BB AND CC  AND FCKB;
+AA AND BB AND CC AND DD AND FCKB;
 
-底背离
-{ 30分钟MACD金叉 }
-DIFF:=EMA(CLOSE,12)-EMA(CLOSE,26);
-DEA:=EMA(DIFF,9);
-RCC:=CROSS(DIFF,DEA);
-{  在五日均线上   }
-WRS:=MA(C,5)<MA(C,10) AND MA(C,10)<MA(C,14) AND MA(C,14)<MA(C,20);
-RCC AND WRS;
-
-1，涨停板
-ZT:=C/REF(C,1)>1.07 AND C/REF(C,1)<1.09 ;
-2，60日涨幅小于80%
-A1:=C/REF(C,60)<1.8;
-3，连续2天缩量，
-CJL:=V/REF(V,1)>1 and V/ref(v,1)<1.5;
-4，在五日均线上
-WRS:=C>=MAX(MA(C,5),MAX(MA(C,10),MAX(MA(C,20),MAX(MA(C,60),MA(C,120)))));
-6，过滤 科创板和 创业板  st  *st
-FCKB:=NOT(CODELIKE('688')||CODELIKE('300')||NAMELIKE('ST') ||NAMELIKE('*ST'));
-
-
-洗盘选股：
-{底背离}
-DIFF:=EMA(CLOSE,12)-EMA(CLOSE,26);
-DEA:=EMA(DIFF,9);
-RCC:=CROSS(DIFF,DEA);
-VAR1:=2*MA(LLV((C+L)/2,8)*1.1,13)-EMA((C+L)/2,3)-((C+L)/2)*0.1;
-VAR2:=IF((EMA((C+L)/2,3)-VAR1)*5>0,POW((EMA((C+L)/2,3)-VAR1)*5,2)/10,-1*POW((EMA((C+L)/2,3)-VAR1)*5,2)/10);
-VAR3:=IF(VAR2>0,VAR2-0,0);
-注意:VAR3>0 AND REF(VAR3,1)=0 AND (C+L)/2>MA((C+L)/2,8) AND RCC;
 
 
 洗盘副图
