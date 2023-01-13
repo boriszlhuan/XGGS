@@ -1,0 +1,435 @@
+做T 分时图 #技术指标
+MA30:=EMA(CLOSE,30);
+强弱:EMA(CLOSE,900);
+STICKLINE((MA30>强弱),MA30,强弱,1,0),COLOR000000;
+STICKLINE((MA30<强弱),MA30,强弱,1,0),COLOR00FF00;
+H1:=MAX(DYNAINFO(3),DYNAINFO(5));
+L1:=MIN(DYNAINFO(3),DYNAINFO(6));
+P1:=H1-L1;
+阻力:L1+P1*7/8,COLORRED;
+支撑:L1+P1*0.5/8,COLOR871F78;
+现价:CLOSE,COLORRED,LINETHICK1;
+STICKLINE(CROSS(支撑,现价),支撑,阻力,1,0),COLOR871F78;
+DRAWTEXT(LONGCROSS(支撑,现价,2),支撑*1.001,'B'),COLOR000000;{吸}
+DRAWTEXT(LONGCROSS(现价,阻力,2),现价,''),COLORRED;{抛};
+
+
+RSI中线  #技术指标
+LC:=REF(C,1);
+RSI:SMA(MAX(C-LC,0),14,1)/SMA(ABS(C-LC),14,1)*100,COLORBLACK;
+AA:70,COLORRED;
+BB:60,COLORBLUE;
+CC:50,COLORGREEN,DOTLINE;
+DD:40,COLORRED;
+FF:30,COLORBLUE;
+
+龙头一进二  #选股指标
+EWRWRE:=C*FINANCE(46)/100000000<150 AND BARSCOUNT(V)>10;
+GFERRE:=C<30;
+SADFFS:=C/REF(C,1)>1.0982 AND REF(C,1)/REF(C,2)<1.09 AND O<H;
+M5:=MA(CLOSE,250);
+CP:=C*1.1>M5 ;
+CP2:=C*1.1<M5*0.8 ;
+JX:=CP OR CP2 ;
+HL80:=WINNER(C)*100>=65;
+H1HFSD:=(VOL/CAPITAL*100)<10 ;
+QC:=IF(CODELIKE('68'),0,1) AND IF(CODELIKE('30'),0,1);
+选股:=QC AND GFERRE AND EWRWRE AND H1HFSD AND JX AND HL80 AND SADFFS;
+XG:=REF(选股,1) AND C/REF(C,1)>1.0682 AND O/REF(C,1)<1.096;
+龙头一进二:FILTER(XG,60) AND XG;
+
+
+强势打二板   #选股指标
+X_1:=2;
+X_2:=CLOSE>=ZTPRICE(REF(CLOSE,1),0.1);
+X_3:=COUNT(X_2,X_1)=1 AND X_2;
+X_4:=VOL/700000000;
+X_5:=1.1*(MAX(HIGH,REF(CLOSE,1))/MIN(LOW,REF(CLOSE,1))-1);
+X_6:=2.5*MAX(X_4,X_5);
+X_7:=DMA(CLOSE,X_6);
+X_8:=SMA(20*(X_7/REF(X_7,1)-1),2,1);
+X_9:=EMA(X_8,2);
+X_10:=0.24;
+X_11:=CLOSE>=REF(CLOSE,1);
+X_12:=IF(X_8>X_10 AND X_9>=0.005 AND X_11,1,0);
+X_13:=CROSS(X_12,0.5) AND COUNT(X_12>0.5,10)=1;
+X_14:=KDJ.J-REF(KDJ.J,1)>30 AND CLOSE/REF(CLOSE,1)>1.043 AND MACD.macd>0 AND MACD.DEA>0;
+X_15:=CLOSE/REF(CLOSE,1)>1.048 AND CLOSE=HIGH AND BETWEEN(FORCAst(VOL,4),0.2*FORCAST(VOL,12),2.1*FORCAST(VOL,12));
+X_16:=FILTER(X_15,28)*100 AND LOW>REF(CLOSE,1)*0.93;
+X_17:=X_14 OR X_16 AND X_13;
+X_18:=9;
+X_19:=10;
+X_20:=CLOSE/REF(CLOSE,1)>1+0.01*X_18;
+X_21:=EXIST(CLOSE/REF(CLOSE,1)>1+0.01*X_18,X_19);
+X_22:=CLOSE/REF(CLOSE,1)>1+0.01*X_18;
+X_23:=IF(X_20+X_21+X_22=3,1,0);
+X_24:=(HIGH-CLOSE)/(CLOSE-OPEN)<0.33;
+X_25:=CLOSE/REF(CLOSE,1)-1>=0.0502 AND CLOSE>REF(CLOSE,1) AND (OPEN-LOW)/(CLOSE-OPEN)>=1.48 AND LOW<REF(LOW,1) AND LOW<REF(LOW,2);
+X_26:=CLOSE/REF(CLOSE,1)-1>=0.08;
+X_27:=VOL>REF(VOL,1)*1.9 AND CLOSE>REF(CLOSE,1) AND CLOSE/REF(CLOSE,1)-1>=0.049 AND X_24;
+X_28:=CLOSE/REF(CLOSE,1)-1>=0.0502 AND CLOSE>REF(CLOSE,1) AND VOL>REF(VOL,1) AND VOL>REF(VOL,1)*2.5 AND X_24;
+X_29:=EMA(2.055*EMA(EMA(HIGH,34),34)-EMA(EMA(LOW,34),34),5);
+X_30:=IF(FILTER(X_27 OR X_28 OR X_25 OR X_26 AND X_29>CLOSE,34),1,0) AND X_23;
+X_31:=X_17 OR X_30;
+X_32:=X_31-X_31*0.14 AND X_3;
+X_33:=HIGH=CLOSE;
+X_34:=(CLOSE-REF(CLOSE,1))/REF(CLOSE,1)*100>=0.93 AND X_33;
+X_35:=BArslAST(X_32);
+二板:X_35 AND X_34 AND X_35<=1;
+
+
+
+
+几板以上 N  #选股指标
+ZD:=C>=ZTPRICE(REF(CLOSE,1),0.1);
+ZT:=BARSLASTCOUNT(ZD)>=N
+ST:=NOT(NAMELIKE('S')||NAMELIKE('*S')||CODELIKE('688'));
+ZT AND ST;
+
+孕线  #选股指标
+A:=H>REF(H,1) AND L>REF(L,1);
+B:=REF(H,2)>REF(H,1) AND REF(L,2)<REF(L,1);
+A AND B;
+
+突破孕线 #选股指标
+T1:=(REF(O,4)-REF(C,4))/REF(O,4)>=0.05;
+A:=HHV(C,3);
+B:=LLV(C,3);
+T2:=REF(A,1)<REF(H,4) && REF(B,1)>REF(L,4);
+T3:=CROSS(C,REF(H,4));
+T1 && T2 && T3;
+
+
+
+缩量十字星选股公式：
+5 10 20 60 120曰线.5线之上.缩量十字星.也就是前几曰最高量的半倍量
+五线上:=C>=MAX(MA(C,5),MAX(MA(C,10),MAX(MA(C,20),MAX(MA(C,60),MA(C,120)))));
+缩量:=V<=HHV(V,10)*0.5;
+十字星:=ABS(C-O)/C<=0.002 AND C/REF(C,1)<1.02;
+五线上 AND 缩量 AND 十字星;
+
+60天低吸公式
+股价大于60天线，但与60天线距离小于5%
+BETWEEN(C/MA(C,60),1.001,1.05);
+
+
+1，30个交易日内,股价跌幅达到一半的股票:
+xg:(hhv(c,30)-c)/hhv(c,30)>0.5;
+
+强股快踩选股公式
+强股:=H/REF(L,1)>1.15 OR H/REF(L,2)>1.18;
+快抽:=L/REF(H,1)<0.96 AND C
+信号:REF(强股,1) AND 快抽;
+
+ 
+
+3，两天内,累计下跌等于或超过20%选股.
+xg:(ref(c,2)-c)/c>0.2;
+
+4，股价是25天以来新低.
+xg:c
+
+5，选股：ＥＸＰＭＡ　５日与１０日金叉　并且第二天的收盘价在ＥＸＰＭＡ的
+５日线以上．
+CRoss(ref(EMA(c,5),1),ref(ema(c,10),1)) and c>ema(c,5);
+
+6，请编买入公式：
+A. 将BIAS指标的参数设置为24日，将KD指标的参数设置为9；3；3。
+B. BIAS指标要小于-6，这只是确认该股超跌的初选条件。
+C. KD指标产生黄金交叉，K线上穿D线。
+D. KD交叉同时，KD指标中的D值要小于16。
+BIAS3 :=(CLOSE-MA(CLOSE,24))/MA(CLOSE,24)*100,colorff00ff;
+RSV:=(CLOSE-LLV(LOW,9))/(HHV(HIGH,9)-LLV(LOW,9))*100;
+K:=SMA(RSV,3,1),COLORWHITE;
+D:=SMA(K,3,1),COLORYELLOW;
+xg:BIAS3<-6 and cross(k,d) and d<16;
+
+7，要求是量大、换手率达到3左右，涨幅>7个点。
+xg:v/capital*100>3 and (c/ref(c,1)>1.07;
+
+10，股价回抽20日均线选股公式
+xg:ref(c,1)>ma(c,20) and cross(ma(c,20),c);
+
+11，一根大阳线,至少有5个点以上,再连着出现二根振幅不大于5的十字星或是小K线
+xg:(ref(c,3)-ref(c,4))/ref(c,3)>0.05 and count((h-l)/l<0.05,2)=2;
+
+12，行情信息里的“涨幅”的原码
+(c-ref(c,1))/c*100;
+
+13，KDJ的J从上向下穿越O轴发出信号
+RSV:=(CLOSE-LLV(LOW,9))/(HHV(HIGH,9)-LLV(LOW,9))*100;
+K:=SMA(RSV,3,1),COLORWHITE;
+D:=SMA(K,3,1),COLORYELLOW;
+J:=3*K-2*D,COLORFF00FF;
+xg:cross(0,j);
+
+14，股价4天中有两天在10日线上
+count(c>ma(c,10),4)=2;
+
+
+15，选出10天内出现过涨停的个股
+count(c/ref(c,1)>1.1,10)>0;
+
+
+16，一阳上穿10，20，30日线，量能是前一天3倍。
+xg:cross(c,ma(c,10)) and cross(c,ma(c,20)) and cross(c,ma(c,30)) and
+v>ref(v,1)*3;
+
+
+17，共三根K线，第一根K线为阴线；第二根K线为阴线，最高价低于第一根K线
+，最低价高于第一根K线；第三根K线阴阳不限，最高价低于第二根K线，最低价高
+于第二根K线。满足后发出信号～
+w1:=ref(c,2)
+w2:=ref(h,2)>ref(h,1) and ref(l,2)
+w3:=ref(h,1)>h and ref(l,1)
+xg:w1 and w2 and w3;
+
+
+18， 选出今日成交量大于昨日成交量一成的股票。
+xg:v>ref(v,1)*1.1;
+
+19，股价上穿5周均线:
+xg:cross(c,ma(c,5));
+注意：选股时用周线
+
+20，股价上穿30日均线的公式
+xg:cross(c,ma(c,30));
+
+21，量比大于1 同时换手大于2的公式
+xg:v/ref(v,1)>1 and AMOUNT/CAPITAL*100>2;
+
+22，当天开盘价与收盘价相等的选股公式
+xg:c=o;
+
+22，日均线向上 流通盘小于15000万 换手率大于3的选股公式
+lt:CAPITAL/100<15000;
+换手:=VOL*100/CAPITAL<3;
+w1:ma(c,5)>ref(ma(c,5),1);
+xg:lt and 换手 and w1;
+
+25，30内到本日收盘价下跌20%的公式
+xg:hhv(c,30)/c>1.2;
+
+27，30日均线走平或走高的个股
+xg:ma(c,30)>ref(ma(c,30),1);
+
+28，连续4天的收盘价格波动幅度在3%之内连续走平或向上
+count(abs(c-ref(c,1)/ref(c,1))<0.03 and c>ref(c,1),3)=3;
+
+
+29，上影线长于下影线
+(c-l)>(h-c);
+
+30，今天高开的公式
+c>o;
+
+33，换手率10天30%以上的选股公式
+sum(VOL/CAPITAL*100,10)>30;
+
+35，选出周换手率小于10%的股票
+sum(VOL/CAPITAL*100,5)<10;
+
+36，成交量创20日新低，并且股价也创20日新低
+xg:v=llv(v,20) and c=llv(c,20);
+
+37，"今日MACD等于昨天的macd ,且macd>0" 的指标
+DIFF:=EMA(CLOSE,12)-EMA(CLOSE,26);
+DEA:=EMA(DIFF,9);
+MACD:=2*(DIFF-DEA);
+xg:macd=ref(macd,1) and macd>0
+
+39， 连续三天高开高走的选股公式
+count(o>ref(c,1) and c>o,3)=3;
+
+
+40，n天内曾经有m个涨停
+count(c/ref(c,1)>1.09,n)>m;
+
+41，连续3天每天的最低价都比前一天高
+count(l>ref(c,1),3)=3;
+
+42，周量缩小50%或40%或n%
+a1:vol/capital*100;
+xg:a1/ref(a1,1)
+
+43，股价超过五日均价的15%以上，并给出卖出信号
+卖出:c/ma(c,5)>1.15;
+
+
+44，连收两个十字星的选股公式
+count(abs((c-o)/o<0.01),2)=2;
+
+45，n横盘天数，n1横盘的上下幅度
+REF(((HHV(H,N)-LLV(L,N))/LLV(L,N)),1)<=(n1/100)
+and ref(v,1)
+
+46，振幅大于5%，收盘价大于3.5%小于15元，三日均线大于昨日的三日均线，去掉ST股。
+a1:=h/l>1.05;
+a2:=c>3.5 and c<15;
+a3:=ma(c,3)>ref(ma(c,3),1);
+xg:a1 and a2 and a3;
+
+49，股价突破5ma买入，跌破5ma卖出。买入和卖出用箭头表示 （副图）
+a1:cross(c,ma(c,5));
+a2:cross(ma(c,5),c);
+drawtext(a1,low*0.98,↑),colorred;
+drawtext(a2,h*1.02,↑),color00ffff;
+
+50，历史高点到前一高点画线
+POLYLINE(h>=hhv(c,0),h);
+
+52，20天均线向上的股
+xg:ma(c,20)>ref(ma(c,20),1);
+
+
+53, 连续3天收盘全是阴线。
+count(c
+
+54, 今天收盘价在昨天收盘价-2%~2%之间
+c/ref(c,1)>0.98 and c/ref(c,1)<1.02;
+
+55，收盘价在5日均线以上5天
+count(c>ma(c,5),5)=5;
+
+58，A。昨日量是n天以来最低量，（n可调）；B。今日量是昨日量的m倍，（m可调）；C。今日k线收阳线；
+xg:ref(v,1)=llv(ref(v,1),n) and v>ref(v,1)*m and c>o;
+
+59，第一天收阴，第二天，第三天，第四天，收出红三兵
+XG:REF(C,3)O,3)=3;
+
+60，月k线十字星收盘 并且5月线拐点向上。
+XG:ABS(C-O)/O<0.02 AND MA(C,5)>REF(MA(C,5),1);
+用月线选股
+
+
+61，最近3天(包括昨天.前天)股价突破250日均线
+COUNT(C>MA(C,250),3)=3;
+
+
+63，条件:A: 假设大前天创最近新高,要求这天涨幅是超过7%的大阳线,且创最近
+一个月的新高.B: 那么前天,昨天,今天都收小K线,要求小K线实体
+xg:ref(c,3)/ref(c,4)>1.07 and ref(c,3)=hhv(c,20) and count(abs((c-ref
+(c,1))/ref(c,1)<0.02,3)))=3;
+
+
+65， 今天涨停的公式
+C/REF(C,1)>1.09;
+
+
+66，10日内有涨停的公式今涨停:=C/REF(C,1)>1.09;
+选股:count(今涨停,10);
+
+
+67，昨日前日涨停的
+REF(C,1)/REF(C,2)>1.095;
+
+68，近5日K线最高价和最低价格波动在10%以内，成交量是昨日2倍，收盘涨5%
+XG:(HHV(C,5)-LLV(C,5))/LLV(C,5)<0.1 AND V>REF(V,1)*2 AND C/REF(C,1)
+>1.05;
+
+
+69, 能在图上提示个股(不含S或ST股)出现过的涨跌停板日期的公式
+w1:if((c-ref(c,1))/ref(c,1)>0.1,date-1000000,c);
+
+
+71，5日,10日,20日、30日贴近公式,越贴越好
+m1:=ma(close,5);
+m2:=ma(close,10);
+m3:=ma(close,20);
+m4:=ma(close,30);
+y1:=max(max(max(m1,m2),m3),m4);
+x1:=min(min(min(m1,m2),m3),m4);
+黏合:y1/x1
+
+在公式编辑器中有个参数表，依序填入 N   1     10     1.01，选股时N可以任意填你想填的数（N.1.01---1.03）
+
+72，均线粘合公式（5.10.20.30）
+n:=1.01;
+m1:=ma(close,5);
+m2:=ma(close,10);
+m3:=ma(close,20);
+m4:=ma(close,30);
+y1:=max(max(max(m1,m2),m3),m4);
+x1:=min(min(min(m1,m2),m3),m4);
+黏合:y1/x1
+
+
+72, 30天线拐头向上出现提示
+ma(c,30)>ref(ma(c,30),1);
+
+73, 今天的换手率大于前天的一倍以上
+w1:=v*100/capital;
+w1>ref(w1,2)*2;
+
+74, K线沿着5日均线往上爬的选股公式
+w1:ma(c,5);
+w2:abc(c-w1)/w1<0.01;
+xg:count(w1>ref(w1,1),5)=5 and w2;
+
+
+75, 20日均线，上穿62日均线 
+xg:cross(ma(c,20),ma(c,62));
+
+
+76, 平台整理的公式,整理时间和整理幅度可调（？？？）
+COUNT(CLOSE,0)>N AND
+(HHV(CLOSE,N)-LLV(CLOSE,N))/LLV(CLOSE,N)<=(N1/100);
+N整理时间,N1整理幅度
+
+79, 第一天股票涨停，第二天成交量是第一天成交量的１倍,并超过10%.那第三天
+就是买点
+w1:=ref(c,2)/ref(c,3)>1.1;
+w2:=ref(v,1)/ref(v,2)>2;
+xg:w1 and w2;
+
+80, 3日均线上穿10日均线，KDJ有效金叉
+RSV:=(CLOSE-LLV(LOW,9))/(HHV(HIGH,9)-LLV(LOW,9))*100;
+K:=SMA(RSV,3,1);
+D:=SMA(K,3,1);
+J:=3*K-2*D;
+w1:=cross(ma(c,3),ma(c,10));
+xg:w1 and cross(k,d);
+
+81, 30日均线拐头向上
+ma(c,30)>ref(ma(c,30),1);
+
+82, 连续3-5天,每天的收盘价涨跌幅不超过1%.
+w1:abs(c-o)<0.01;
+xg:count(w1,5)>=3;
+
+83, K线收十字星abs(c-o)/o<0.01;
+
+85, MACD在8天以内两次金叉
+DIFF:=(EMA(CLOSE,12) - EMA(CLOSE,26));
+DEA:=EMA(DIFF,9),COLORBLUE,LINETHICK0;
+MACD:=2*(DIFF-DEA);
+w1:cross(DIFF,dea);
+xg:count(w1,8)>=2;
+
+86, 股价于20日均线相差2个百分点的
+w1:abs(c-ma(c,20)/ma(c,20)*100<2;
+N日均线相差M个百分点的公式.
+w1:abs(c-ma(c,n)/ma(c,n)*100
+n：N日 m：M个百分点
+
+87, MACD的拐点公式DIFF:=(EMA(CLOSE,12) - EMA(CLOSE,26));
+DEA:=EMA(DIFF,9),COLORBLUE,LINETHICK0;
+MACD:=2*(DIFF-DEA);
+拐点:ref(macd,2)>ref(macd,1) and ref(macd,1)
+
+88，成交量是前5天中其他任何一天的10天均量线的3.5倍以上
+w1:=llv(ma(v,10),5);
+xg:v>w1*3.5;
+
+串阳回踩公式   
+串阳:=COUNT(C>=O,N1)=N1;
+串阴:=COUNT(C
+信号:REF(串阳,N2) AND 串阴;
+
+
+选股公式去除大盘股、ST股、高价股的方法
+去除ST:=EXIST((C/REF(C,1)-1)*100>5.6,60);
+去除停牌:=DYNAINFO(4)>0; {通达信:今开大于零}
+去除高价:=DYNAINFO(7)<40; {最新价小于40元}
+去除大盘股:=CAPITAL/1000000<10; {流通盘为10亿以下}
+AND 去除ST AND 去除停牌 AND 去除高价 AND 去除大盘股;

@@ -1,0 +1,15 @@
+
+打板：
+{ 涨停板 }
+ZT:=C/REF(C,1)>1.07;
+{ 连续1天缩量 }
+CJL:=COUNT(VOL<=REF(VOL,1),1)=1;
+
+{ 过滤 科创板和 创业板  st  *st }
+FCKB:=NOT(CODELIKE('688')||NAMELIKE('ST') ||NAMELIKE('*ST'));
+ZT AND CJL AND WRS  AND FCKB;
+ 
+
+
+EE:=MACD-REF(MACD,1)>0.05 AND COUNT(C/REF(C,1)>1.07,16)<2 AND C=HHV(H,60) AND C/REF(C,1)>1.07 AND NOT(H=L) AND COUNT(C>O,6)<=4 AND C/REF(C,9)<1.2;
+打板启动:EE AND C/REF(C,1)>1.05;
